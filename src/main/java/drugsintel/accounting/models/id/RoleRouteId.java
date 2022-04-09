@@ -15,8 +15,8 @@ import java.io.Serializable;
 public class RoleRouteId implements Serializable {
 
     @Column(name = "route_id")
-    private Long route_id;
+    private Long routeId;
     @Column(name = "role_id")
-    private Long role_id;
+    private Long roleId;
 
 }

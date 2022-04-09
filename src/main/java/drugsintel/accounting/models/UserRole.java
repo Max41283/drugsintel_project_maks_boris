@@ -4,6 +4,7 @@ import drugsintel.accounting.models.id.UserRoleId;
 import lombok.*;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @NoArgsConstructor
@@ -11,20 +12,25 @@ import javax.persistence.*;
 @Getter
 @Setter
 @ToString
+@EqualsAndHashCode
 @Table(schema = "sign", name = "user_role")
+@IdClass(UserRoleId.class)
 public class UserRole {
 
-    @EmbeddedId
-    private UserRoleId id;
+    @Id
+    @Column(name = "user_id")
+    private Long userId;
 
-    @ManyToOne
-    @MapsId("user_id")
-    @JoinColumn(name = "user_id")
-    private User user;
+    @Id
+    @Column(name = "role_id")
+    private Long roleId;
 
-    @ManyToOne
-    @MapsId("role_id")
-    @JoinColumn(name = "role_id")
-    private Role role;
+    @Id
+    @Column(name = "role_start")
+    private LocalDateTime start;
+
+    @Id
+    @Column(name = "role_end")
+    private LocalDateTime end;
 
 }

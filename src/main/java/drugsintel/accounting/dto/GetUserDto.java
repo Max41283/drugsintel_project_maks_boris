@@ -1,13 +1,8 @@
 package drugsintel.accounting.dto;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,14 +11,9 @@ import java.time.LocalDateTime;
 @Builder
 public class GetUserDto {
 
-	String username;
-	String email;
-
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern="yyyy-MM-dd@HH:mm:ss")
-	LocalDateTime createdAt;
-	@JsonFormat(pattern="yyyy-MM-dd@HH:mm:ss")
-	LocalDateTime updatedAt;
-
-	boolean active;
+    String userName;
+    String email;
+    String roleName;
+    LocalDate expiryDate;
 
 }

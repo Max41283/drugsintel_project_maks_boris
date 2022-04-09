@@ -3,9 +3,11 @@ package drugsintel.accounting.models;
 import lombok.*;
 
 import javax.persistence.Column;
+import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+@Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -18,6 +20,6 @@ public class Route {
     private Long id;
 
     @Column(name = "name")
-    private String route_name;
+    private String routeName;
 
 }

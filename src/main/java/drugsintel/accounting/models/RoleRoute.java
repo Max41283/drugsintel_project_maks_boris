@@ -18,13 +18,13 @@ public class RoleRoute {
     private RoleRouteId id;
 
     @ManyToOne
-    @MapsId("role_id")
+    @MapsId("roleId")
     @JoinColumn(name = "role_id")
-    private Role role;
+    private Role roleId;
 
     @ManyToOne
-    @MapsId("route_id")
+    @MapsId("routeId")
     @JoinColumn(name = "route_id")
-    private Route route;
+    private Route routeId;
 
 }
