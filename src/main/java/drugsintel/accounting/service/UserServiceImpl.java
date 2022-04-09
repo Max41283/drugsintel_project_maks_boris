@@ -1,9 +1,12 @@
 package drugsintel.accounting.service;
 
+import drugsintel.accounting.dto.UpdateUserRequestDto;
+import drugsintel.accounting.dto.UpdateUserResponseDto;
 import drugsintel.accounting.dto.GetUserDto;
 import drugsintel.accounting.dto.RegUserDto;
 import drugsintel.accounting.exceptions.RoleNotFoundException;
 import drugsintel.accounting.exceptions.UserAlreadyExistsException;
+import drugsintel.accounting.exceptions.UserNotActiveException;
 import drugsintel.accounting.exceptions.UserNotFoundException;
 import drugsintel.accounting.models.Role;
 import drugsintel.accounting.models.User;
@@ -15,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Service
@@ -67,7 +71,6 @@ public class UserServiceImpl implements UserService {
     public GetUserDto getUser(Long id) {
         User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         UserRole userRole = userRoleRepository.findByUserIdAndStartBeforeAndEndAfter(id, LocalDateTime.now(), LocalDateTime.now()).orElseThrow(UserNotFoundException::new);
-        System.out.println("User Role ID = " + userRole.getRoleId());
         Role role = roleRepository.getById(userRole.getRoleId());
         GetUserDto userDto = modelMapper.map(user, GetUserDto.class);
         userDto.setRoleName(role.getRoleName());
@@ -77,16 +80,39 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    public UpdateUserResponseDto updateUser(Long id, UpdateUserRequestDto userRequestDto) {
+        User user = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
+        if (!user.getActive()) {
+            throw new UserNotActiveException(id);
+        }
+        user.setUserName(userRequestDto.getUsername());
+        user.setEmail(userRequestDto.getEmail());
+        user.setUpdatedAt(LocalDateTime.now());
+        UserRole userRole = userRoleRepository.findByUserIdAndStartBeforeAndEndAfter(id, LocalDateTime.now(), LocalDateTime.now()).orElseThrow(UserNotFoundException::new);
+        Role role = roleRepository.getById(userRole.getRoleId());
+        UpdateUserResponseDto userDto = modelMapper.map(user, UpdateUserResponseDto.class);
+        userDto.setRoleName(role.getRoleName());
+        userDto.setUpdatedAt(LocalDate.now());
+        return userDto;
+    }
+
+    @Override
+    @Transactional
     public GetUserDto deleteUser(String email) {
 		User user = userRepository.findByEmail(email).orElseThrow(UserNotFoundException::new);
         GetUserDto removedUser = modelMapper.map(user, GetUserDto.class);
-        System.out.println("User ID = " + user.getUserId());
         UserRole userRole = userRoleRepository.findByUserIdAndStartBeforeAndEndAfter(user.getUserId(), LocalDateTime.now(), LocalDateTime.now()).orElseThrow(UserNotFoundException::new);
-        System.out.println("User Role ID = " + userRole.getRoleId());
-        removedUser.setRoleName(userRole.getRoleId().toString());
+        Role role = roleRepository.findById(userRole.getRoleId()).orElseThrow(RoleNotFoundException::new);
+        removedUser.setRoleName(role.getRoleName());
+        user.setActive(false);
+        removedUser.setExpiryDate(LocalDateTime.now().toLocalDate());
 //        userRepository.delete(user);
         return removedUser;
     }
+
+
+
+
 
 
 }

@@ -26,6 +26,6 @@ public class Role {
     @JoinTable(schema = "sign", name = "role_route",
             joinColumns = @JoinColumn(name = "role_id"),
             inverseJoinColumns = @JoinColumn(name = "route_id"))
-    Set<Route> routes;
+    private Set<Route> routes;
 
 }

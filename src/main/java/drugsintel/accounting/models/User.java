@@ -30,9 +30,12 @@ public class User {
     private String password;
 
     @Column(name = "active")
-    private boolean active;
+    private Boolean active;
 
-    @Column(name = "createdAt")
-    LocalDateTime createdAt;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
 }
