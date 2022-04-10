@@ -1,9 +1,6 @@
 package drugsintel.accounting.service;
 
-import drugsintel.accounting.dto.UpdateUserRequestDto;
-import drugsintel.accounting.dto.UpdateUserResponseDto;
-import drugsintel.accounting.dto.GetUserDto;
-import drugsintel.accounting.dto.RegUserDto;
+import drugsintel.accounting.dto.*;
 import drugsintel.accounting.exceptions.RoleNotFoundException;
 import drugsintel.accounting.exceptions.UserAlreadyExistsException;
 import drugsintel.accounting.exceptions.UserNotActiveException;
@@ -20,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -68,6 +66,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public LoginUser loginUser(String login) {
+        //ToDO
+        return null;
+    }
+
+    @Override
     public GetUserDto getUser(Long id) {
         User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
         UserRole userRole = userRoleRepository.findByUserIdAndStartBeforeAndEndAfter(id, LocalDateTime.now(), LocalDateTime.now()).orElseThrow(UserNotFoundException::new);
@@ -110,9 +114,25 @@ public class UserServiceImpl implements UserService {
         return removedUser;
     }
 
+    @Override
+    public UpdateUserResponseDto changeRole(String userName, String userRole) {
+        return null;
+    }
 
+    @Override
+    public void changePassword(String password) {
 
+    }
 
+    @Override
+    public Set<UpdateUserResponseDto> findByCreationDate(LocalDate dateFrom, LocalDate dateTo) {
+        return null;
+    }
+
+    @Override
+    public Set<UpdateUserResponseDto> findByRole(String role) {
+        return null;
+    }
 
 
 }

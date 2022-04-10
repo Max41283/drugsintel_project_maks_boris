@@ -12,4 +12,5 @@ public interface UserRoleRepository extends JpaRepository<UserRole, UserRoleId> 
     Optional<UserRole> findByUserIdAndStartBeforeAndEndAfter(Long id, LocalDateTime currentTime1, LocalDateTime currentTime2);
 
 
+
 }

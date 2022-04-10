@@ -4,6 +4,7 @@ import drugsintel.accounting.models.id.UserRoleId;
 import lombok.*;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Entity
@@ -15,7 +16,7 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode
 @Table(schema = "sign", name = "user_role")
 @IdClass(UserRoleId.class)
-public class UserRole {
+public class UserRole implements Serializable {
 
     @Id
     @Column(name = "user_id")

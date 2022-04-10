@@ -1,13 +1,15 @@
 package drugsintel.accounting.service;
 
-import drugsintel.accounting.dto.UpdateUserRequestDto;
-import drugsintel.accounting.dto.UpdateUserResponseDto;
-import drugsintel.accounting.dto.GetUserDto;
-import drugsintel.accounting.dto.RegUserDto;
+import drugsintel.accounting.dto.*;
+
+import java.time.LocalDate;
+import java.util.Set;
 
 public interface UserService {
 
 	boolean regUser(RegUserDto regUserDto);
+
+	LoginUser loginUser(String login);
 	
 	GetUserDto getUser(Long id);
 
@@ -15,5 +17,12 @@ public interface UserService {
 
 	GetUserDto deleteUser(String userName);
 
+	UpdateUserResponseDto changeRole(String userName, String userRole);
+
+	void changePassword(String password);
+
+	Set<UpdateUserResponseDto> findByCreationDate(LocalDate dateFrom, LocalDate dateTo);
+
+	Set<UpdateUserResponseDto> findByRole(String role);
 
 }

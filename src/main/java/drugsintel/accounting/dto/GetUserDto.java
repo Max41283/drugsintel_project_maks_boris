@@ -11,9 +11,9 @@ import java.time.LocalDate;
 @Builder
 public class GetUserDto {
 
-    String userName;
-    String email;
-    String roleName;
-    LocalDate expiryDate;
+    private String userName;
+    private String email;
+    private String roleName;
+    private LocalDate expiryDate;
 
 }

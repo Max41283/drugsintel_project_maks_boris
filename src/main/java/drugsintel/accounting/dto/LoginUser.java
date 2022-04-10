@@ -7,9 +7,9 @@ import lombok.*;
 @Getter
 @Setter
 @Builder
-public class UpdateUserRequestDto {
+public class LoginUser {
 
-    private String username;
-    private String email;
+    private Long userId;
+    private String  token;
 
 }

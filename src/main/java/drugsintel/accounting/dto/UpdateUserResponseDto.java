@@ -11,9 +11,9 @@ import java.time.LocalDate;
 @Builder
 public class UpdateUserResponseDto {
 
-    String userName;
-    String email;
-    String roleName;
-    LocalDate updatedAt;
+    private String userName;
+    private String email;
+    private String roleName;
+    private LocalDate updatedAt;
 
 }
