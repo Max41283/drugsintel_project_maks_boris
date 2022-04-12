@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 //import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,16 +31,16 @@ public class AccountServiceImpl implements AccountService {
 	UserRoleRepository userRoleRepository;
 	RoleRepository roleRepository;
 	ModelMapper modelMapper;
-//	PasswordEncoder passwordEncoder;
+	PasswordEncoder passwordEncoder;
 
 	@Autowired
 	public AccountServiceImpl(AccountRepository accountRepository, UserRoleRepository userRoleRepository,
-			RoleRepository roleRepository, ModelMapper modelMapper) {
+			RoleRepository roleRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder) {
 		this.accountRepository = accountRepository;
 		this.userRoleRepository = userRoleRepository;
 		this.roleRepository = roleRepository;
 		this.modelMapper = modelMapper;
-//		this.passwordEncoder = passwordEncoder;
+		this.passwordEncoder = passwordEncoder;
 	}
 
 	@Override
@@ -50,13 +51,11 @@ public class AccountServiceImpl implements AccountService {
 			throw new LoginExistsExeption(userRegisterDto.getUserName());
 		}
 		account = modelMapper.map(userRegisterDto, Account.class);
-//		String password = passwordEncoder.encode(userRegisterDto.getPassword());
-		account.setPassword(userRegisterDto.getPassword());
+		account.setPassword(passwordEncoder.encode(userRegisterDto.getPassword()));
 		Long userId = accountRepository.save(account).getId();
 		Timestamp start = Timestamp.valueOf(LocalDateTime.now());
 		Timestamp end = Timestamp.valueOf(LocalDateTime.now().plusYears(100));
 		UserRole userRole = new UserRole(userId, 1L, start, end);
-		System.out.println(userRole);
 		userRoleRepository.save(userRole);
 		return true;
 	}
