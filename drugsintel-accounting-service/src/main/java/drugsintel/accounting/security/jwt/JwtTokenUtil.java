@@ -52,6 +52,7 @@ public class JwtTokenUtil implements Serializable {
 		Map<String, Object> claims = new HashMap<>();
 		claims.put("userId", userDetails.getUserId());
 		claims.put("role", userDetails.getAuthorities().toString());
+		claims.put("userActive", userDetails.isUserActive());
 		return doGenerateToken(claims, userDetails.getUsername());
 	}
 	
@@ -90,6 +91,15 @@ public class JwtTokenUtil implements Serializable {
 				.get("role")
 				.toString();
 		return role.substring(6, role.length() - 1);
+	}
+	
+	public Boolean getUserActive(String token) {
+		return Boolean.valueOf(Jwts.parser()
+				.setSigningKey(secret)
+				.parseClaimsJws(token)
+				.getBody()
+				.get("userActive")
+				.toString());
 	}
 	
 }

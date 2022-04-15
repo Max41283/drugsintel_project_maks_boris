@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import drugsintel.accounting.dto.ChangeRoleDto;
 import drugsintel.accounting.dto.UserAccountDto;
+import drugsintel.accounting.dto.UserActiveDto;
 import drugsintel.accounting.dto.UserRegisterDto;
 import drugsintel.accounting.dto.UserUpdateDto;
 import drugsintel.accounting.security.jwt.JwtTokenUtil;
@@ -29,14 +31,9 @@ public class AccountController {
 
 	
 	@PostMapping("/registation")
-	public boolean register(@RequestBody UserRegisterDto userRegisterDto) {
-		return accountService.addUser(userRegisterDto);
+	public void register(@RequestBody UserRegisterDto userRegisterDto) {
+		accountService.addUser(userRegisterDto);
 	}
-	
-//	@PostMapping("/login")
-//	public UserTokenDto login(Principal principal) {
-//		return accountService.loginUser(principal.getName());
-//	}
 	
 	@GetMapping("/getuser")
 	public UserAccountDto getUser(@RequestHeader("Authorization") String token) {
@@ -52,6 +49,23 @@ public class AccountController {
 	public UserAccountDto updateUser(@RequestHeader("Authorization") String token,
 			@RequestBody UserUpdateDto userUpdateDto) {
 		return accountService.updateUser(jwtTokenUtil.getUserId(token.substring(7)), userUpdateDto);
+	}
+	
+	@PutMapping("/password")
+	public void changePassword(@RequestHeader("Authorization") String token, 
+			@RequestHeader("X-Password") String newPassword) {
+		accountService.changePassword(jwtTokenUtil.getUserId(token.substring(7)), newPassword);
+	}
+	
+	@PutMapping("/admin/role")
+	public UserAccountDto changeRole(@RequestHeader("Authorization") String token,
+			@RequestBody ChangeRoleDto changeRoleDto) {
+		return accountService.changeRole(changeRoleDto);
+	}
+	
+	@PutMapping("/admin/active/{user}")
+	public UserActiveDto deactivateUser(@PathVariable String user) {
+		return accountService.toggleActiveUser(user);
 	}
 
 }

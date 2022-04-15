@@ -31,4 +31,6 @@ public class Account {
 	@Column(name = "email")
 	String email;
 	String password;
+	@Column(name = "active")
+	boolean isActive;
 }

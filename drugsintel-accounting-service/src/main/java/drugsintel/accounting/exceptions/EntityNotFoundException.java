@@ -7,15 +7,15 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @ResponseStatus(code = HttpStatus.NOT_FOUND)
-public class UserNotFoundException extends RuntimeException {
+public class EntityNotFoundException extends RuntimeException {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 6826436654358918772L;
 	
-	public UserNotFoundException(Long id) {
-		super("User " + id + " not found");
+	public EntityNotFoundException(String entity) {
+		super(entity + " not found");
 	}
 
 }

@@ -1,8 +1,5 @@
 package drugsintel.accounting.security;
 
-import org.modelmapper.ModelMapper;
-import org.modelmapper.config.Configuration.AccessLevel;
-import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -56,17 +53,18 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	
 	@Override
 	protected void configure(HttpSecurity httpSecurity) throws Exception {
-		// We don't need CSRF for this example
+		// We don't need CSRF
 		httpSecurity.csrf().disable()
-				// dont authenticate this particular request
+				// don't authenticate this particular request
 				.authorizeRequests()
 					.antMatchers("/accounting/registation").permitAll()
 					.antMatchers("/accounting/login").permitAll()
+					.antMatchers("/accounting/admin/**")
+						.hasRole("ADMIN")
 				// all other requests need to be authenticated
 					.anyRequest().authenticated()
 				.and()
-				// make sure we use stateless session; session won't be used to
-				// store user's state.
+				// session won't be used to store user's state
 				.exceptionHandling()
 					.authenticationEntryPoint(jwtAuthenticationEntryPoint)
 				.and()
@@ -77,14 +75,4 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		httpSecurity.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 	}
 	
-	@Bean
-	public ModelMapper getModelMapper() {
-		ModelMapper modelMapper = new ModelMapper();
-		modelMapper.getConfiguration()
-					.setFieldMatchingEnabled(true)
-					.setFieldAccessLevel(AccessLevel.PRIVATE)
-					.setMatchingStrategy(MatchingStrategies.STRICT);
-		return modelMapper;
-	}
-
 }

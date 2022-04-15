@@ -1,5 +1,7 @@
 package drugsintel.accounting.controller;
 
+import java.util.Set;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -39,13 +41,14 @@ public class AuthenticationController {
 	public ResponseEntity<?> createAuthenticationToken(@RequestBody JwtRequest authenticationRequest) throws Exception {
 		
 		authenticate(authenticationRequest.getUsername(), authenticationRequest.getPassword());
-
+		
 		final UserProfile userDetails = (UserProfile) userDetailsService
 				.loadUserByUsername(authenticationRequest.getUsername());
 		
 		final String token = jwtTokenUtil.generateToken(userDetails);
+		final Set<String> routeNames = userDetails.getRouteNames();
 		
-		return ResponseEntity.ok(new JwtResponse(token, userDetails.getRouteNames()));
+		return ResponseEntity.ok(new JwtResponse(token, routeNames));
 	}
 	
 	private void authenticate(String username, String password) throws Exception {
@@ -55,7 +58,7 @@ public class AuthenticationController {
 			throw new Exception("USER_DISABLED", e);
 		} catch (BadCredentialsException e) {
 			throw new Exception("INVALID_CREDENTIALS", e);
-		}
+		} 
 	}
 
 }
