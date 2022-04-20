@@ -66,13 +66,11 @@ public class AccountServiceImpl implements AccountService {
 	public UserAccountDto getUser(Long id) {
 		Timestamp now = Timestamp.valueOf(LocalDateTime.now());
 		Account account = accountRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("User " + id));
-//		if (!account.getIsActiv()) {
-//			throw(new UserNotActiveException(account.getUserName()));
-//		}
 		UserAccountDto userAccountDto = modelMapper.map(account, UserAccountDto.class);
 		UserRole userRole = userRoleRepository
-		.findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqualAndRoleIdNot(account.getId(), now, now, 1L)
-		.orElse(null);
+				.findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqualAndRoleIdNot(account.getId(),
+						now, now, roleRepository.findByRoleName("USER").get().getId())
+				.orElse(null);
 		if (userRole == null) {
 			userRole = userRoleRepository.findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqual(account.getId(), now, now);
 		}
@@ -89,8 +87,9 @@ public class AccountServiceImpl implements AccountService {
 		Account account = accountRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("User " + id));
 		UserAccountDto userAccountDto = modelMapper.map(account, UserAccountDto.class);
 		UserRole userRole = userRoleRepository
-		.findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqualAndRoleIdNot(account.getId(), now, now, 1L)
-		.orElse(null);
+				.findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqualAndRoleIdNot(account.getId(),
+						now, now, roleRepository.findByRoleName("USER").get().getId())
+				.orElse(null);
 		if (userRole == null) {
 			userRole = userRoleRepository.findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqual(account.getId(), now, now);
 		}
@@ -107,8 +106,9 @@ public class AccountServiceImpl implements AccountService {
 		Timestamp now = Timestamp.valueOf(LocalDateTime.now());
 		Account account = accountRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("User " + id));
 		UserRole userRole = userRoleRepository
-		.findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqualAndRoleIdNot(account.getId(),now, now,1L)
-		.orElse(null);
+				.findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqualAndRoleIdNot(account.getId(),
+						now, now, roleRepository.findByRoleName("USER").get().getId())
+				.orElse(null);
 		if (userRole == null) {
 			userRole = userRoleRepository.findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqual(account.getId(), now, now);
 		}

@@ -39,17 +39,15 @@ public class JwtUserDetailsService implements UserDetailsService {
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		Timestamp now = Timestamp.valueOf(LocalDateTime.now());
 		Account userAccount = accountRepository.findByUserName(username).orElseThrow(() -> new UsernameNotFoundException(username));
+		Role role = roleRepository.findByRoleName("USER").get();
 		UserRole userRole = userRoleRepository
-				.findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqualAndRoleIdNot(
-						userAccount.getId(),
-						now, 
-						now,
-						1L)
+				.findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqualAndRoleIdNot(userAccount.getId(),
+						now, now, role.getId())
 				.orElse(null);
 		if (userRole == null) {
 			userRole = userRoleRepository.findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqual(userAccount.getId(), now, now);
 		}
-		Role role = roleRepository.findById(userRole.getRoleId()).get();
+		role = roleRepository.findById(userRole.getRoleId()).get();
 		String[] roles = new String[] {"ROLE_" + role.getRoleName().toUpperCase()};
 		return new UserProfile(
 				username,

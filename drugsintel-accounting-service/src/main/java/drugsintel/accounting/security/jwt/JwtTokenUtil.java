@@ -6,12 +6,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
+//import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+//import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
+//import io.jsonwebtoken.SignatureException;
+//import io.jsonwebtoken.UnsupportedJwtException;
 
 @Component
 public class JwtTokenUtil implements Serializable {
@@ -21,7 +27,12 @@ public class JwtTokenUtil implements Serializable {
 	 */
 	private static final long serialVersionUID = -4532298408480123744L;
 
-	public static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60;
+//	public static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60;
+	
+//	private static final Logger logger = LoggerFactory.getLogger(JwtTokenUtil.class);
+	
+	@Value("${jwt.expirations}")
+	private Long jwtValidity;
 
 	@Value("${jwt.secret.word}")
 	private String secret;
@@ -62,12 +73,27 @@ public class JwtTokenUtil implements Serializable {
 				.setClaims(claims)
 				.setSubject(subject)
 				.setIssuedAt(new Date(System.currentTimeMillis()))
-				.setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000))
+				.setExpiration(new Date(System.currentTimeMillis() + jwtValidity))
 				.signWith(SignatureAlgorithm.HS512, secret)
 				.compact();
 	}
 	
 	public Boolean validateToken(String token, UserProfile userDetails) {
+//		try {
+//			Jwts.parser().setSigningKey(secret).parseClaimsJws(token);
+//			return true;
+//		} catch (SignatureException e) {
+//			logger.error("Invalid JWT signature: {}", e.getMessage());
+//		} catch (MalformedJwtException e) {
+//			logger.error("Invalid JWT token: {}", e.getMessage());
+//		} catch (ExpiredJwtException e) {
+//			logger.error("JWT token is expired: {}", e.getMessage());
+//		} catch (UnsupportedJwtException e) {
+//			logger.error("JWT token is unsupported: {}", e.getMessage());
+//		} catch (IllegalArgumentException e) {
+//			logger.error("JWT claims string is empty: {}", e.getMessage());
+//		}
+//		return false;
 		final String username = getUsernameFromToken(token);
 		return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
 	}
