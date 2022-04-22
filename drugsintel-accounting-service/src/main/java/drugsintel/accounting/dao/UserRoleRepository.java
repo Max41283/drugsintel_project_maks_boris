@@ -9,7 +9,7 @@ import drugsintel.accounting.model.UserRoleId;
 
 public interface UserRoleRepository extends JpaRepository<UserRole, UserRoleId> {
 	
-	UserRole findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqual(Long userId, Timestamp start, Timestamp end);
+	Optional<UserRole> findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqual(Long userId, Timestamp start, Timestamp end);
 	
 	Optional<UserRole> findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqualAndRoleIdNot(Long userId, Timestamp start, Timestamp end, Long roleId);
 	

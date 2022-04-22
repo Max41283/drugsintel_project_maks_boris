@@ -47,7 +47,11 @@ public class AccountServiceImpl implements AccountService {
 	public void addUser(UserRegisterDto userRegisterDto) {
 		Account account = accountRepository.findByUserName(userRegisterDto.getUserName()).orElse(null);
 		if (account != null) {
-			throw new LoginExistsExeption(userRegisterDto.getUserName());
+			throw new LoginExistsExeption("username " + userRegisterDto.getUserName());
+		}
+		account = accountRepository.findByEmail(userRegisterDto.getEmail()).orElse(null);
+		if (account != null) {
+			throw new LoginExistsExeption("email " + userRegisterDto.getEmail());
 		}
 		account = modelMapper.map(userRegisterDto, Account.class);
 		account.setPassword(passwordEncoder.encode(userRegisterDto.getPassword()));
@@ -72,7 +76,9 @@ public class AccountServiceImpl implements AccountService {
 						now, now, roleRepository.findByRoleName("USER").get().getId())
 				.orElse(null);
 		if (userRole == null) {
-			userRole = userRoleRepository.findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqual(account.getId(), now, now);
+			userRole = userRoleRepository
+					.findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqual(account.getId(), now, now)
+					.orElseThrow(() -> new EntityNotFoundException("Actual USER-role for User " + id));
 		}
 		userAccountDto.setExpiryDate(userRole.getDateEnd().toLocalDateTime().toLocalDate());
 		Role role = roleRepository.findById(userRole.getRoleId()).get();
@@ -91,7 +97,9 @@ public class AccountServiceImpl implements AccountService {
 						now, now, roleRepository.findByRoleName("USER").get().getId())
 				.orElse(null);
 		if (userRole == null) {
-			userRole = userRoleRepository.findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqual(account.getId(), now, now);
+			userRole = userRoleRepository
+					.findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqual(account.getId(), now, now)
+					.orElseThrow(() -> new EntityNotFoundException("Actual USER-role for User " + id));
 		}
 		userAccountDto.setExpiryDate(userRole.getDateEnd().toLocalDateTime().toLocalDate());
 		Role role = roleRepository.findById(userRole.getRoleId()).get();
@@ -110,7 +118,9 @@ public class AccountServiceImpl implements AccountService {
 						now, now, roleRepository.findByRoleName("USER").get().getId())
 				.orElse(null);
 		if (userRole == null) {
-			userRole = userRoleRepository.findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqual(account.getId(), now, now);
+			userRole = userRoleRepository
+					.findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqual(account.getId(), now, now)
+					.orElseThrow(() -> new EntityNotFoundException("Actual USER-role for User " + id));
 		}
 		account.setUserName(userUpdateDto.getUsername());
 		account.setEmail(userUpdateDto.getEmail());
@@ -157,10 +167,11 @@ public class AccountServiceImpl implements AccountService {
 		Account account = accountRepository.findByUserName(userName)
 				.orElseThrow(() -> new EntityNotFoundException(userName));
 		account.setActive(!account.isActive());
-		account = accountRepository.save(account);
+		accountRepository.save(account);
 		UserActiveDto userActiveDto = modelMapper.map(account, UserActiveDto.class);
 		UserRole userRole = userRoleRepository
-				.findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqual(account.getId(), now, now);
+				.findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqual(account.getId(), now, now)
+				.orElseThrow(() -> new EntityNotFoundException("Actual USER-role for User " + account.getId()));
 		userActiveDto.setExpiryDate(userRole.getDateEnd().toLocalDateTime().toLocalDate());
 		Role role = roleRepository.findById(userRole.getRoleId()).get();
 		userActiveDto.setRole(role.getRoleName());

@@ -15,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 import drugsintel.accounting.dao.AccountRepository;
 import drugsintel.accounting.dao.RoleRepository;
 import drugsintel.accounting.dao.UserRoleRepository;
+import drugsintel.accounting.exceptions.EntityNotFoundException;
+import drugsintel.accounting.exceptions.UserNotActiveException;
 import drugsintel.accounting.model.Account;
 import drugsintel.accounting.model.Role;
 import drugsintel.accounting.model.UserRole;
@@ -39,13 +41,18 @@ public class JwtUserDetailsService implements UserDetailsService {
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		Timestamp now = Timestamp.valueOf(LocalDateTime.now());
 		Account userAccount = accountRepository.findByUserName(username).orElseThrow(() -> new UsernameNotFoundException(username));
+		if (!userAccount.isActive()) {
+			throw new UserNotActiveException(userAccount.getUserName());
+		}
 		Role role = roleRepository.findByRoleName("USER").get();
 		UserRole userRole = userRoleRepository
-				.findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqualAndRoleIdNot(userAccount.getId(),
-						now, now, role.getId())
+				.findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqualAndRoleIdNot(
+						userAccount.getId(), now, now, role.getId())
 				.orElse(null);
 		if (userRole == null) {
-			userRole = userRoleRepository.findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqual(userAccount.getId(), now, now);
+			userRole = userRoleRepository
+					.findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqual(userAccount.getId(), now, now)
+					.orElseThrow(() -> new EntityNotFoundException("Actual USER-role for User " + userAccount.getId()));
 		}
 		role = roleRepository.findById(userRole.getRoleId()).get();
 		String[] roles = new String[] {"ROLE_" + role.getRoleName().toUpperCase()};

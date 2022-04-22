@@ -15,7 +15,7 @@ public class UserNotActiveException extends RuntimeException {
 	private static final long serialVersionUID = 1920604860097976593L;
 
 	public UserNotActiveException(String userName) {
-		super(userName + " is not active");
+		super("Account " + userName + " is not active. Contact support.");
 	}
 
 }

@@ -14,8 +14,8 @@ public class LoginExistsExeption extends RuntimeException {
 	 */
 	private static final long serialVersionUID = -9123314843921253382L;
 
-	public LoginExistsExeption(String login) {
-		super("Account with login " + login + " already exists");
+	public LoginExistsExeption(String message) {
+		super("Account with " + message + " already exists");
 	}
 
 }

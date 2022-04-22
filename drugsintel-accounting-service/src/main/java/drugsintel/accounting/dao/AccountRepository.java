@@ -9,5 +9,7 @@ import drugsintel.accounting.model.Account;
 public interface AccountRepository extends JpaRepository<Account, Long> {
 	
 	Optional<Account> findByUserName(String userName);
+	
+	Optional<Account> findByEmail(String email);
 
 }

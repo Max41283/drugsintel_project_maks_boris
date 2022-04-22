@@ -49,8 +49,8 @@ public class AuthenticationController {
 
 		authenticate(authenticationRequest.getUsername(), authenticationRequest.getPassword());
 
-		final UserProfile userDetails = (UserProfile) userDetailsService
-				.loadUserByUsername(authenticationRequest.getUsername());
+		final UserProfile userDetails =
+				(UserProfile) userDetailsService.loadUserByUsername(authenticationRequest.getUsername());
 
 		final String token = jwtTokenUtil.generateToken(userDetails);
 		final Set<String> routeNames = userDetails.getRouteNames();
