@@ -132,12 +132,7 @@ public class AccountServiceImpl implements AccountService {
 		UserRole userRole = userRoleRepository
 				.findByUserIdAndRoleIdAndDateStartLessThanEqualAndDateEndGreaterThanEqual(userId, roleId, now, now)
 				.orElse(new UserRole(userId, roleId, start, end));
-//		if (userRole != null) {
-//			userRole = new UserRole(userId, roleId, start, end);
-//		} else {
-//			userRole.setDateEnd(end);
-//		}
-		userRole.setDateEnd(end);
+//		userRole.setDateEnd(end);
 		userAccountDto.setRole(role.getRoleName());
 		userAccountDto.setExpiryDate(userRole.getDateEnd().toLocalDateTime().toLocalDate());
 		userRoleRepository.save(userRole);
