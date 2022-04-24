@@ -6,18 +6,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
-//import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
-//import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
-//import io.jsonwebtoken.SignatureException;
-//import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.SignatureException;
+import io.jsonwebtoken.UnsupportedJwtException;
 
 @Component
 public class JwtTokenUtil implements Serializable {
@@ -29,7 +29,7 @@ public class JwtTokenUtil implements Serializable {
 
 //	public static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60;
 	
-//	private static final Logger logger = LoggerFactory.getLogger(JwtTokenUtil.class);
+	private static final Logger logger = LoggerFactory.getLogger(JwtTokenUtil.class);
 	
 	@Value("${jwt.expirations}")
 	private Long jwtValidity;
@@ -81,7 +81,8 @@ public class JwtTokenUtil implements Serializable {
 	public Boolean validateToken(String token, UserProfile userDetails) {
 //		try {
 //			Jwts.parser().setSigningKey(secret).parseClaimsJws(token);
-//			return true;
+			final String username = getUsernameFromToken(token);
+			return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
 //		} catch (SignatureException e) {
 //			logger.error("Invalid JWT signature: {}", e.getMessage());
 //		} catch (MalformedJwtException e) {
@@ -94,8 +95,24 @@ public class JwtTokenUtil implements Serializable {
 //			logger.error("JWT claims string is empty: {}", e.getMessage());
 //		}
 //		return false;
-		final String username = getUsernameFromToken(token);
-		return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+	}
+	
+	public Boolean isTokenCorrect(String token) {
+		try {
+			Jwts.parser().setSigningKey(secret).parseClaimsJws(token);
+			return true;
+		} catch (SignatureException e) {
+			logger.error("Invalid JWT signature: {}", e.getMessage());
+		} catch (MalformedJwtException e) {
+			logger.error("Invalid JWT token: {}", e.getMessage());
+		} catch (ExpiredJwtException e) {
+			logger.error("JWT token is expired: {}", e.getMessage());
+		} catch (UnsupportedJwtException e) {
+			logger.error("JWT token is unsupported: {}", e.getMessage());
+		} catch (IllegalArgumentException e) {
+			logger.error("JWT claims string is empty: {}", e.getMessage());
+		}
+		return false;
 	}
 	
 	public Long getUserId(String token) {

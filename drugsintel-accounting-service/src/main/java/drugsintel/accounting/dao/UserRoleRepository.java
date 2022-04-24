@@ -13,4 +13,6 @@ public interface UserRoleRepository extends JpaRepository<UserRole, UserRoleId> 
 	
 	Optional<UserRole> findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqualAndRoleIdNot(Long userId, Timestamp start, Timestamp end, Long roleId);
 	
+	Optional<UserRole> findByUserIdAndRoleIdAndDateStartLessThanEqualAndDateEndGreaterThanEqual(Long userId, Long roleId, Timestamp start, Timestamp end);
+	
 }

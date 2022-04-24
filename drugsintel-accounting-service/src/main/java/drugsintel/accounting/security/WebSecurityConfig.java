@@ -34,8 +34,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	
 	@Override
 	public void configure(AuthenticationManagerBuilder auth) throws Exception {
-		// configure AuthenticationManager so that it knows from where to load
-		// user for matching credentials
+		// Configure AuthenticationManager so that it knows 
+		// from where to load user for matching credentials
 		// Use BCryptPasswordEncoder
 		auth.userDetailsService(jwtUserDetailsService).passwordEncoder(passwordEncoder());
 	}
@@ -55,7 +55,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	protected void configure(HttpSecurity httpSecurity) throws Exception {
 		// We don't need CSRF
 		httpSecurity.csrf().disable()
-				// don't authenticate this particular request
+				// don't authenticate these particular requests
 				.authorizeRequests()
 					.antMatchers("/accounting/registation").permitAll()
 					.antMatchers("/accounting/login").permitAll()
@@ -65,10 +65,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 				// all other requests need to be authenticated
 					.anyRequest().authenticated()
 				.and()
-				// session won't be used to store user's state
 				.exceptionHandling()
 					.authenticationEntryPoint(jwtAuthenticationEntryPoint)
 				.and()
+				// session won't be used to store user's state
 				.sessionManagement()
 					.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
