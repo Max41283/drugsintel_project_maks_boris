@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import drugsintel.accounting.dao.AccountRepository;
 import drugsintel.accounting.exceptions.TokenRefreshException;
@@ -29,7 +30,9 @@ public class RefreshTokenService {
 		return refreshTokenRepository.findByToken(token);
 	}
 
+	@Transactional
 	public RefreshToken createRefreshToken(Long userId) {
+		refreshTokenRepository.deleteByAccountId(userId);
 		RefreshToken refreshToken = new RefreshToken();
 		refreshToken.setAccount(accountRepository.findById(userId).get());
 		refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenDurationMs));

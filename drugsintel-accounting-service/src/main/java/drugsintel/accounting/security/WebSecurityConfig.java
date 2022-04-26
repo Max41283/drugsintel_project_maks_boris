@@ -15,8 +15,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import drugsintel.accounting.security.filters.JwtRequestFilter;
+import drugsintel.accounting.security.filters.RoleAccessFilter;
 import drugsintel.accounting.security.jwt.JwtAuthenticationEntryPoint;
-import drugsintel.accounting.security.jwt.JwtRequestFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -31,6 +32,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	
 	@Autowired
 	JwtRequestFilter jwtRequestFilter;
+	
+	@Autowired
+	RoleAccessFilter RoleAccessFilter;
 	
 	@Override
 	public void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -74,6 +78,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 		// Add a filter to validate the tokens with every request
 		httpSecurity.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+		httpSecurity.addFilterBefore(RoleAccessFilter, UsernamePasswordAuthenticationFilter.class);
 	}
 	
 }

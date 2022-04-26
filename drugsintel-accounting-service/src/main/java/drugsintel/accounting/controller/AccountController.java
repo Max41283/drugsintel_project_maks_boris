@@ -67,5 +67,10 @@ public class AccountController {
 	public UserActiveDto deactivateUser(@PathVariable String user) {
 		return accountService.toggleActiveUser(user);
 	}
-
+	
+//	@GetMapping("/dashboard")
+//	public void getDashboard(@RequestHeader("Authorization") String token) {
+//		System.out.println("Dashboard");
+//	}
+	
 }

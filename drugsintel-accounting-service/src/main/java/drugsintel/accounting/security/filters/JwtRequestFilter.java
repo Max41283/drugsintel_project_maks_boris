@@ -1,4 +1,4 @@
-package drugsintel.accounting.security.jwt;
+package drugsintel.accounting.security.filters;
 
 import java.io.IOException;
 
@@ -8,12 +8,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import drugsintel.accounting.exceptions.UserAccessDeniedException;
+import drugsintel.accounting.security.jwt.JwtTokenUtil;
+import drugsintel.accounting.security.jwt.JwtUserDetailsService;
+import drugsintel.accounting.security.jwt.UserProfile;
+
+@Order(10)
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
 
@@ -28,24 +35,25 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-			throws ServletException, IOException {
+			throws UserAccessDeniedException, ServletException, IOException {
 
 		final String requestTokenHeader = request.getHeader("Authorization");
 
 		String username = null;
 		String jwtToken = null;
-		Boolean userActiv = null;
+		Boolean userActive = null;
 
 		if (requestTokenHeader != null) {
 			if (requestTokenHeader.startsWith("Bearer ")) {
 				jwtToken = requestTokenHeader.substring(7);
 				if (jwtTokenUtil.isTokenCorrect(jwtToken)) {
 					username = jwtTokenUtil.getUsernameFromToken(jwtToken);
-					userActiv = jwtTokenUtil.getUserActive(jwtToken);
-					if (!userActiv) {
-						logger.warn(username + " is not active");
+					userActive = jwtTokenUtil.getUserActive(jwtToken);
+					if (!userActive) {
+						logger.error(username + " is not active");
+						response.sendError(403);
+						return;
 					}
-					
 				} else {
 					logger.error("JWT Token rejected");
 				}
@@ -57,8 +65,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
 			UserProfile userDetails = (UserProfile) this.jwtUserDetailService.loadUserByUsername(username);
 
-			// if token is valid configure Spring Security to manually set
-			// authentication
+			// if token is valid configure Spring Security to manually set authentication
 			if (jwtTokenUtil.validateToken(jwtToken, userDetails)) {
 				UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = 
 						new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());

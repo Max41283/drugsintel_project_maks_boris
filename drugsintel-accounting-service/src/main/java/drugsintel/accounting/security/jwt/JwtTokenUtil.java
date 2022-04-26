@@ -79,22 +79,8 @@ public class JwtTokenUtil implements Serializable {
 	}
 	
 	public Boolean validateToken(String token, UserProfile userDetails) {
-//		try {
-//			Jwts.parser().setSigningKey(secret).parseClaimsJws(token);
 			final String username = getUsernameFromToken(token);
 			return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
-//		} catch (SignatureException e) {
-//			logger.error("Invalid JWT signature: {}", e.getMessage());
-//		} catch (MalformedJwtException e) {
-//			logger.error("Invalid JWT token: {}", e.getMessage());
-//		} catch (ExpiredJwtException e) {
-//			logger.error("JWT token is expired: {}", e.getMessage());
-//		} catch (UnsupportedJwtException e) {
-//			logger.error("JWT token is unsupported: {}", e.getMessage());
-//		} catch (IllegalArgumentException e) {
-//			logger.error("JWT claims string is empty: {}", e.getMessage());
-//		}
-//		return false;
 	}
 	
 	public Boolean isTokenCorrect(String token) {
