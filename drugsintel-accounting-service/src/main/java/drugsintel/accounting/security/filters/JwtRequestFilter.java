@@ -46,7 +46,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 		if (requestTokenHeader != null) {
 			if (requestTokenHeader.startsWith("Bearer ")) {
 				jwtToken = requestTokenHeader.substring(7);
-				if (jwtTokenUtil.isTokenCorrect(jwtToken)) {
+				String errorMessage = jwtTokenUtil.chekJwtCorrect(jwtToken);
+				if (errorMessage.isEmpty()) {
 					username = jwtTokenUtil.getUsernameFromToken(jwtToken);
 					userActive = jwtTokenUtil.getUserActive(jwtToken);
 					if (!userActive) {
@@ -55,7 +56,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 						return;
 					}
 				} else {
-					logger.error("JWT Token rejected");
+//					logger.error("JWT Token rejected");
+					response.setContentType("application/json");
+			        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+			        response.getOutputStream().println("{ \"Unauthorized error\": \"" + errorMessage + "\" }");
 				}
 			} else {
 				logger.warn("JWT Token does not begin with Bearer String");
