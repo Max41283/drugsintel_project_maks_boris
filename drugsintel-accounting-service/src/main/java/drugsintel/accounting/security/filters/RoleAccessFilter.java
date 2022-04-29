@@ -40,7 +40,9 @@ public class RoleAccessFilter extends GenericFilterBean {
 		HttpServletResponse response = (HttpServletResponse) resp;
 		Principal principal = request.getUserPrincipal();
 		if (principal != null) {
-			UserProfile userDetails = (UserProfile) SecurityContextHolder.getContext().getAuthentication()
+			UserProfile userDetails = (UserProfile) SecurityContextHolder
+					.getContext()
+					.getAuthentication()
 					.getPrincipal();
 			List<String> roles = userDetails.getAuthorities()
 					.stream()
@@ -49,7 +51,6 @@ public class RoleAccessFilter extends GenericFilterBean {
 			if (!roles.contains("ADMIN")) {
 				if (!userDetails.getRouteNames().contains(request.getServletPath())) {
 					logger.error(userDetails.getUsername() + " - access denied!");
-//					response.sendError(403);
 					response.setContentType("application/json");
 			        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 			        response.getOutputStream().println("{ \"Unauthorized error\": \"" + userDetails.getUsername() + " - access denied!\" }");

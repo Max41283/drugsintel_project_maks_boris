@@ -15,8 +15,5 @@ public class UserAccessDeniedException extends AuthenticationException {
 	public UserAccessDeniedException(String msg) {
 		super(msg);
 	}
-	
-	
-	
 
 }

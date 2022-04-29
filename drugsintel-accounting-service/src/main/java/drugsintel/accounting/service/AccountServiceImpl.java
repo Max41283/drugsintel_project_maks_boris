@@ -127,12 +127,15 @@ public class AccountServiceImpl implements AccountService {
 		UserAccountDto userAccountDto = modelMapper.map(account, UserAccountDto.class);
 		Long userId = account.getId();
 		Long roleId = role.getId();
-		Timestamp start = Timestamp.valueOf(LocalDateTime.now());
-		Timestamp end = Timestamp.valueOf(LocalDateTime.now().plusDays(changeRoleDto.getValidityInDays()));
+		Timestamp startDate = Timestamp.valueOf(LocalDateTime.now());
+		Timestamp endDate = Timestamp.valueOf(LocalDateTime.now().plusDays(changeRoleDto.getValidityInDays()));
 		UserRole userRole = userRoleRepository
 				.findByUserIdAndRoleIdAndDateStartLessThanEqualAndDateEndGreaterThanEqual(userId, roleId, now, now)
-				.orElse(new UserRole(userId, roleId, start, end));
-//		userRole.setDateEnd(end);
+				.orElse(null);
+		if (userRole != null) {
+			userRoleRepository.delete(userRole);
+		}
+		userRole = new UserRole(userId, roleId, startDate, endDate);
 		userAccountDto.setRole(role.getRoleName());
 		userAccountDto.setExpiryDate(userRole.getDateEnd().toLocalDateTime().toLocalDate());
 		userRoleRepository.save(userRole);

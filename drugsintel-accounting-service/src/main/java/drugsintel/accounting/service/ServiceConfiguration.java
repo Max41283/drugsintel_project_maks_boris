@@ -1,4 +1,4 @@
-package drugsintel.accounting.configuration;
+package drugsintel.accounting.service;
 
 import org.modelmapper.ModelMapper;
 import org.modelmapper.config.Configuration.AccessLevel;

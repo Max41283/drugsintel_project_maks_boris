@@ -52,14 +52,11 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 					userActive = jwtTokenUtil.getUserActive(jwtToken);
 					if (!userActive) {
 						logger.error(username + " is not active");
-						response.sendError(403);
+						responseError403(response, username + " is not active");
 						return;
 					}
 				} else {
-//					logger.error("JWT Token rejected");
-					response.setContentType("application/json");
-			        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-			        response.getOutputStream().println("{ \"Unauthorized error\": \"" + errorMessage + "\" }");
+					responseError403(response, errorMessage);
 				}
 			} else {
 				logger.warn("JWT Token does not begin with Bearer String");
@@ -82,6 +79,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 			}
 		}
 		chain.doFilter(request, response);
+	}
+
+	private void responseError403(HttpServletResponse response, String errorMessage) throws IOException {
+		response.setContentType("application/json");
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        response.getOutputStream().println("{ \"Unauthorized error\": \"" + errorMessage + "\" }");
 	}
 
 }

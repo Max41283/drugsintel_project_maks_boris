@@ -63,7 +63,8 @@ public class AuthenticationController {
 	public ResponseEntity<?> refreshtoken(@RequestBody TokenRefreshRequest request) {
 		String requestRefreshToken = request.getRefreshToken();
 		RefreshToken refreshToken = refreshTokenService.findByToken(requestRefreshToken)
-				.orElseThrow(() -> new TokenRefreshException(requestRefreshToken, "Refresh token is not in database!"));
+				.orElseThrow(() -> 
+					new TokenRefreshException(requestRefreshToken, "Refresh token is not in database!"));
 		refreshTokenService.verifyExpiration(refreshToken);
 		final UserProfile userDetails = (UserProfile) userDetailsService
 				.loadUserByUsername(refreshToken.getAccount().getUserName());
