@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,9 +14,9 @@ import drugsintel.accounting.dao.AccountRepository;
 import drugsintel.accounting.dao.RoleRepository;
 import drugsintel.accounting.dao.UserRoleRepository;
 import drugsintel.accounting.dto.ChangeRoleDto;
-import drugsintel.accounting.dto.UserAccountDto;
-import drugsintel.accounting.dto.UserActiveDto;
+import drugsintel.accounting.dto.UserActiveResponseDto;
 import drugsintel.accounting.dto.UserRegisterDto;
+import drugsintel.accounting.dto.UserResponseDto;
 import drugsintel.accounting.dto.UserUpdateDto;
 import drugsintel.accounting.exceptions.LoginExistsExeption;
 import drugsintel.accounting.exceptions.EntityNotFoundException;
@@ -45,15 +46,13 @@ public class AccountServiceImpl implements AccountService {
 	@Override
 	@Transactional
 	public void addUser(UserRegisterDto userRegisterDto) {
-		Account account = accountRepository.findByUserName(userRegisterDto.getUserName()).orElse(null);
-		if (account != null) {
+		if (accountRepository.findByUserName(userRegisterDto.getUserName()).orElse(null) != null) {
 			throw new LoginExistsExeption("username " + userRegisterDto.getUserName());
 		}
-		account = accountRepository.findByEmail(userRegisterDto.getEmail()).orElse(null);
-		if (account != null) {
+		if (accountRepository.findByEmail(userRegisterDto.getEmail()).orElse(null) != null) {
 			throw new LoginExistsExeption("email " + userRegisterDto.getEmail());
 		}
-		account = modelMapper.map(userRegisterDto, Account.class);
+		Account account = modelMapper.map(userRegisterDto, Account.class);
 		account.setPassword(passwordEncoder.encode(userRegisterDto.getPassword()));
 		account.setActive(true);
 		Long userId = accountRepository.save(account).getId();
@@ -69,41 +68,52 @@ public class AccountServiceImpl implements AccountService {
 
 	@Override
 	@Transactional(readOnly = true)
-	public UserAccountDto getUser(Long id) {
-		Account account = accountRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("User " + id));
-		UserAccountDto userAccountDto = modelMapper.map(account, UserAccountDto.class);
+	public ResponseEntity<?> getUser(Long id) {
+		Account account = accountRepository.findById(id)
+				.orElseThrow(() -> new EntityNotFoundException("User " + id));
 		UserRole userRole = findUserRole(id);
-		userAccountDto.setExpiryDate(userRole.getDateEnd().toLocalDateTime().toLocalDate());
-		userAccountDto.setRole(findRoleName(userRole.getRoleId()).getRoleName());
-		return userAccountDto;
+		return ResponseEntity.ok(new UserResponseDto(account.getUserName(),
+				account.getEmail(),
+				findRoleName(userRole.getRoleId()).getRoleName(),
+				userRole.getDateEnd().toLocalDateTime().toLocalDate()));
 	}
 
 	@Override
 	@Transactional
-	public UserAccountDto removeUser(Long id) {
+	public ResponseEntity<?> removeUser(Long id) {
 		Account account = accountRepository.findById(id)
 				.orElseThrow(() -> new EntityNotFoundException("User " + id));
-		UserAccountDto userAccountDto = modelMapper.map(account, UserAccountDto.class);
 		UserRole userRole = findUserRole(id);
-		userAccountDto.setExpiryDate(userRole.getDateEnd().toLocalDateTime().toLocalDate());
-		userAccountDto.setRole(findRoleName(userRole.getRoleId()).getRoleName());
 		accountRepository.deleteById(id);
-		return userAccountDto;
+		return ResponseEntity.ok(new UserResponseDto(account.getUserName(),
+				account.getEmail(),
+				findRoleName(userRole.getRoleId()).getRoleName(),
+				userRole.getDateEnd().toLocalDateTime().toLocalDate()));
 	}
 
 	@Override
 	@Transactional
-	public UserAccountDto updateUser(Long id,UserUpdateDto userUpdateDto) {
+	public ResponseEntity<?> updateUser(Long id,UserUpdateDto userUpdateDto) {
 		Account account = accountRepository.findById(id)
 				.orElseThrow(() -> new EntityNotFoundException("User " + id));
+		if (!account.getUserName().equals(userUpdateDto.getUsername())) {
+			if (accountRepository.findByUserName(userUpdateDto.getUsername()).orElse(null) != null) {
+				throw new LoginExistsExeption("username " + userUpdateDto.getUsername());
+			} 
+		}
+		if (!account.getEmail().equals(userUpdateDto.getEmail())) {
+			if (accountRepository.findByEmail(userUpdateDto.getEmail()).orElse(null) != null) {
+				throw new LoginExistsExeption("email " + userUpdateDto.getEmail());
+			} 
+		}
 		UserRole userRole = findUserRole(id);
 		account.setUserName(userUpdateDto.getUsername());
 		account.setEmail(userUpdateDto.getEmail());
 		account = accountRepository.save(account);
-		UserAccountDto userAccountDto = modelMapper.map(account, UserAccountDto.class);
-		userAccountDto.setExpiryDate(userRole.getDateEnd().toLocalDateTime().toLocalDate());
-		userAccountDto.setRole(findRoleName(userRole.getRoleId()).getRoleName());
-		return userAccountDto;
+		return ResponseEntity.ok(new UserResponseDto(account.getUserName(),
+				account.getEmail(),
+				findRoleName(userRole.getRoleId()).getRoleName(),
+				userRole.getDateEnd().toLocalDateTime().toLocalDate()));
 	}
 
 	@Override
@@ -118,13 +128,12 @@ public class AccountServiceImpl implements AccountService {
 
 	@Override
 	@Transactional
-	public UserAccountDto changeRole(ChangeRoleDto changeRoleDto) {
+	public ResponseEntity<?> changeRole(ChangeRoleDto changeRoleDto) {
 		Timestamp now = Timestamp.valueOf(LocalDateTime.now());
 		Account account = accountRepository.findByUserName(changeRoleDto.getUserName())
 				.orElseThrow(() -> new EntityNotFoundException(changeRoleDto.getUserName()));
 		Role role = roleRepository.findByRoleName(changeRoleDto.getRoleName())
 				.orElseThrow(() -> new EntityNotFoundException("Role " + changeRoleDto.getRoleName()));
-		UserAccountDto userAccountDto = modelMapper.map(account, UserAccountDto.class);
 		Long userId = account.getId();
 		Long roleId = role.getId();
 		Timestamp startDate = Timestamp.valueOf(LocalDateTime.now());
@@ -136,24 +145,25 @@ public class AccountServiceImpl implements AccountService {
 			userRoleRepository.delete(userRole);
 		}
 		userRole = new UserRole(userId, roleId, startDate, endDate);
-		userAccountDto.setRole(role.getRoleName());
-		userAccountDto.setExpiryDate(userRole.getDateEnd().toLocalDateTime().toLocalDate());
 		userRoleRepository.save(userRole);
-		return userAccountDto;
+		return ResponseEntity.ok(new UserResponseDto(account.getUserName(),
+				account.getEmail(),
+				findRoleName(userRole.getRoleId()).getRoleName(),
+				userRole.getDateEnd().toLocalDateTime().toLocalDate()));
 	}
 
 	@Override
 	@Transactional
-	public UserActiveDto toggleActiveUser(String userName) {
+	public UserActiveResponseDto toggleActiveUser(String userName) {
 		Account account = accountRepository.findByUserName(userName)
 				.orElseThrow(() -> new EntityNotFoundException(userName));
 		account.setActive(!account.isActive());
 		accountRepository.save(account);
-		UserActiveDto userActiveDto = modelMapper.map(account, UserActiveDto.class);
+		UserActiveResponseDto userActiveResponseDto = modelMapper.map(account, UserActiveResponseDto.class);
 		UserRole userRole = findUserRole(account.getId());
-		userActiveDto.setExpiryDate(userRole.getDateEnd().toLocalDateTime().toLocalDate());
-		userActiveDto.setRole(findRoleName(userRole.getRoleId()).getRoleName());
-		return userActiveDto;
+		userActiveResponseDto.setExpiryDate(userRole.getDateEnd().toLocalDateTime().toLocalDate());
+		userActiveResponseDto.setRole(findRoleName(userRole.getRoleId()).getRoleName());
+		return userActiveResponseDto;
 	}
 	
 	private UserRole findUserRole(Long userId) {

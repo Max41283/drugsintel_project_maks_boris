@@ -4,20 +4,25 @@ import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
-public class UserActiveDto {
+public class UserResponseDto {
 	String userName;
 	String email;
 	String role;
 	@JsonFormat(pattern = "yyyy-MM-dd")
 	LocalDate expiryDate;
-	boolean isActive;
+	
+	public UserResponseDto(String userName, String email, String role, LocalDate expiryDate) {
+		this.userName = userName;
+		this.email = email;
+		this.role = role;
+		this.expiryDate = expiryDate;
+	}
+	
 }

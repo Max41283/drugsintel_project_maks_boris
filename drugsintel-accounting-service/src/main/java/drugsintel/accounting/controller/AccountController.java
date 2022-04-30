@@ -1,6 +1,7 @@
 package drugsintel.accounting.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,8 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import drugsintel.accounting.dto.ChangeRoleDto;
-import drugsintel.accounting.dto.UserAccountDto;
-import drugsintel.accounting.dto.UserActiveDto;
+import drugsintel.accounting.dto.UserActiveResponseDto;
 import drugsintel.accounting.dto.UserRegisterDto;
 import drugsintel.accounting.dto.UserUpdateDto;
 import drugsintel.accounting.security.jwt.JwtTokenUtil;
@@ -36,17 +36,17 @@ public class AccountController {
 	}
 	
 	@GetMapping("/getuser")
-	public UserAccountDto getUser(@RequestHeader("Authorization") String token) {
+	public ResponseEntity<?> getUser(@RequestHeader("Authorization") String token) {
 		return accountService.getUser(jwtTokenUtil.getUserId(token.substring(7)));
 	}
 	
 	@DeleteMapping("/delete")
-	public UserAccountDto deleteUser(@RequestHeader("Authorization") String token) {
+	public ResponseEntity<?> deleteUser(@RequestHeader("Authorization") String token) {
 		return accountService.removeUser(jwtTokenUtil.getUserId(token.substring(7)));
 	}
 	
 	@PutMapping("/update")
-	public UserAccountDto updateUser(@RequestHeader("Authorization") String token,
+	public ResponseEntity<?> updateUser(@RequestHeader("Authorization") String token,
 			@RequestBody UserUpdateDto userUpdateDto) {
 		return accountService.updateUser(jwtTokenUtil.getUserId(token.substring(7)), userUpdateDto);
 	}
@@ -58,19 +58,14 @@ public class AccountController {
 	}
 	
 	@PutMapping("/admin/role")
-	public UserAccountDto changeRole(@RequestHeader("Authorization") String token,
+	public ResponseEntity<?> changeRole(@RequestHeader("Authorization") String token,
 			@RequestBody ChangeRoleDto changeRoleDto) {
 		return accountService.changeRole(changeRoleDto);
 	}
 	
 	@PutMapping("/admin/active/{user}")
-	public UserActiveDto deactivateUser(@PathVariable String user) {
+	public UserActiveResponseDto deactivateUser(@PathVariable String user) {
 		return accountService.toggleActiveUser(user);
 	}
-	
-//	@GetMapping("/dashboard")
-//	public void getDashboard(@RequestHeader("Authorization") String token) {
-//		System.out.println("Dashboard");
-//	}
 	
 }
