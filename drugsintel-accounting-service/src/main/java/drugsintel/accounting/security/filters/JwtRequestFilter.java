@@ -15,7 +15,11 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import drugsintel.accounting.dao.AccountRepository;
+import drugsintel.accounting.exceptions.EntityNotFoundException;
 import drugsintel.accounting.exceptions.UserAccessDeniedException;
+import drugsintel.accounting.exceptions.UserNotActiveException;
+import drugsintel.accounting.model.Account;
 import drugsintel.accounting.security.jwt.JwtTokenUtil;
 import drugsintel.accounting.security.jwt.JwtUserDetailsService;
 import drugsintel.accounting.security.jwt.UserProfile;
@@ -26,22 +30,24 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
 	JwtUserDetailsService jwtUserDetailService;
 	JwtTokenUtil jwtTokenUtil;
+	AccountRepository accountRepository;
 
 	@Autowired
-	public JwtRequestFilter(JwtUserDetailsService jwtUserDetailService, JwtTokenUtil jwtTokenUtil) {
+	public JwtRequestFilter(JwtUserDetailsService jwtUserDetailService,
+			JwtTokenUtil jwtTokenUtil, AccountRepository accountRepository) {
 		this.jwtUserDetailService = jwtUserDetailService;
 		this.jwtTokenUtil = jwtTokenUtil;
+		this.accountRepository = accountRepository;
 	}
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-			throws UserAccessDeniedException, ServletException, IOException {
+			throws UserNotActiveException, UserAccessDeniedException, ServletException, IOException {
 
 		final String requestTokenHeader = request.getHeader("Authorization");
 
 		String username = null;
 		String jwtToken = null;
-		Boolean userActive = null;
 
 		if (requestTokenHeader != null) {
 			if (requestTokenHeader.startsWith("Bearer ")) {
@@ -49,8 +55,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 				String errorMessage = jwtTokenUtil.chekJwtCorrect(jwtToken);
 				if (errorMessage.isEmpty()) {
 					username = jwtTokenUtil.getUsernameFromToken(jwtToken);
-					userActive = jwtTokenUtil.getUserActive(jwtToken);
-					if (!userActive) {
+					final Long userId = jwtTokenUtil.getUserId(jwtToken);
+					Account account = accountRepository.findById(userId)
+							.orElseThrow(() -> new EntityNotFoundException("User " + userId));
+					if (!account.isActive()) {
 						logger.error(username + " is not active");
 						responseError403(response, username + " is not active");
 						return;

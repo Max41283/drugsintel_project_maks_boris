@@ -38,7 +38,7 @@ public class JwtUserDetailsService implements UserDetailsService {
 
 	@Override
 	@Transactional(readOnly = true)
-	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException, UserNotActiveException {
 		Timestamp now = Timestamp.valueOf(LocalDateTime.now());
 		Account userAccount = accountRepository.findByUserName(username).orElseThrow(() -> new UsernameNotFoundException(username));
 		if (!userAccount.isActive()) {
