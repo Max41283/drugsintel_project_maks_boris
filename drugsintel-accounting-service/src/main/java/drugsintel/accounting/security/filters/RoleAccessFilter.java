@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.GenericFilterBean;
 
 import drugsintel.accounting.exceptions.UserAccessDeniedException;
@@ -23,7 +23,7 @@ import drugsintel.accounting.security.jwt.JwtUserDetailsService;
 import drugsintel.accounting.security.jwt.UserProfile;
 
 @Order(20)
-@Service
+@Component
 public class RoleAccessFilter extends GenericFilterBean {
 	
 	JwtUserDetailsService jwtUserDetailService;
@@ -53,7 +53,8 @@ public class RoleAccessFilter extends GenericFilterBean {
 					logger.error(userDetails.getUsername() + " - access denied!");
 					response.setContentType("application/json");
 			        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-			        response.getOutputStream().println("{ \"Unauthorized error\": \"" + userDetails.getUsername() + " - access denied!\" }");
+			        response.getOutputStream()
+			        	.println("{ \"Unauthorized\": \"" + userDetails.getUsername() + " - access denied\" }");
 					return;
 				}
 			}

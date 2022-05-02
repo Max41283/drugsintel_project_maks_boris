@@ -24,18 +24,21 @@ import drugsintel.accounting.security.jwt.JwtAuthenticationEntryPoint;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	
-	@Autowired
 	JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
-	
-	@Autowired
 	UserDetailsService jwtUserDetailsService;
-	
-	@Autowired
 	JwtRequestFilter jwtRequestFilter;
+	RoleAccessFilter roleAccessFilter;
 	
 	@Autowired
-	RoleAccessFilter RoleAccessFilter;
-	
+	public WebSecurityConfig(JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
+			UserDetailsService jwtUserDetailsService, JwtRequestFilter jwtRequestFilter,
+			RoleAccessFilter roleAccessFilter) {
+		this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
+		this.jwtUserDetailsService = jwtUserDetailsService;
+		this.jwtRequestFilter = jwtRequestFilter;
+		this.roleAccessFilter = roleAccessFilter;
+	}
+
 	@Override
 	public void configure(AuthenticationManagerBuilder auth) throws Exception {
 		// Configure AuthenticationManager so that it knows 
@@ -78,7 +81,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 		// Add a filter to validate the tokens with every request
 		httpSecurity.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
-		httpSecurity.addFilterBefore(RoleAccessFilter, UsernamePasswordAuthenticationFilter.class);
+		httpSecurity.addFilterBefore(roleAccessFilter, UsernamePasswordAuthenticationFilter.class);
 	}
 	
 }

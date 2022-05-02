@@ -5,8 +5,6 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,9 +43,12 @@ public class AuthenticationController {
 	}
 
 	@PostMapping("/login")
-	public ResponseEntity<?> createAuthenticationToken(@RequestBody JwtRequest authenticationRequest) throws Exception {
-
-		authenticate(authenticationRequest.getUsername(), authenticationRequest.getPassword());
+	public ResponseEntity<?> authenticate(@RequestBody JwtRequest authenticationRequest) throws Exception {
+		
+		authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+				authenticationRequest.getUsername(),
+				authenticationRequest.getPassword()
+				));
 
 		final UserProfile userDetails =
 				(UserProfile) userDetailsService.loadUserByUsername(authenticationRequest.getUsername());
@@ -65,25 +66,15 @@ public class AuthenticationController {
 		
 		RefreshToken refreshToken = refreshTokenService
 				.findByToken(requestRefreshToken)
-				.orElseThrow(() -> 
-					new TokenRefreshException(requestRefreshToken, "Refresh token is not in database!"));
+				.orElseThrow(() -> new TokenRefreshException(requestRefreshToken, "Refresh token is not in database"));
 		refreshTokenService.verifyExpiration(refreshToken);
 		
 		final UserProfile userDetails = (UserProfile) userDetailsService
 				.loadUserByUsername(refreshToken.getAccount().getUserName());
-		final String token = jwtTokenUtil.generateToken(userDetails);
+		final String jwt = jwtTokenUtil.generateToken(userDetails);
+		final RefreshToken refresh = refreshTokenService.createRefreshToken(userDetails.getUserId());
 		
-		return ResponseEntity.ok(new TokenRefreshResponse(token, requestRefreshToken));
-	}
-
-	private void authenticate(String username, String password) throws Exception {
-		try {
-			authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
-		} catch (DisabledException e) {
-			throw new Exception("USER_DISABLED", e);
-		} catch (BadCredentialsException e) {
-			throw new Exception("INVALID_CREDENTIALS", e);
-		}
+		return ResponseEntity.ok(new TokenRefreshResponse(jwt, refresh.getToken()));
 	}
 
 }

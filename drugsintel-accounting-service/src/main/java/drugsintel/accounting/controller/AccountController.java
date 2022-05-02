@@ -23,13 +23,15 @@ import drugsintel.accounting.service.AccountService;
 @RequestMapping("/accounting")
 public class AccountController {
 	
-	@Autowired
 	AccountService accountService;
-	
-	@Autowired
 	JwtTokenUtil jwtTokenUtil;
 
-	
+	@Autowired
+	public AccountController(AccountService accountService, JwtTokenUtil jwtTokenUtil) {
+		this.accountService = accountService;
+		this.jwtTokenUtil = jwtTokenUtil;
+	}
+
 	@PostMapping("/registation")
 	public void register(@RequestBody UserRegisterDto userRegisterDto) {
 		accountService.addUser(userRegisterDto);
