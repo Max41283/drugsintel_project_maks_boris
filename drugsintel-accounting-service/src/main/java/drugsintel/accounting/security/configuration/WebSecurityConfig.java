@@ -40,11 +40,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	}
 
 	@Override
-	public void configure(AuthenticationManagerBuilder auth) throws Exception {
+	public void configure(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
 		// Configure AuthenticationManager so that it knows 
 		// from where to load user for matching credentials
 		// Use BCryptPasswordEncoder
-		auth.userDetailsService(jwtUserDetailsService).passwordEncoder(passwordEncoder());
+		authenticationManagerBuilder.userDetailsService(jwtUserDetailsService).passwordEncoder(passwordEncoder());
 	}
 	
 	@Bean
@@ -64,9 +64,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		httpSecurity.csrf().disable()
 				// don't authenticate these particular requests
 				.authorizeRequests()
-					.antMatchers("/accounting/registation").permitAll()
-					.antMatchers("/accounting/login").permitAll()
-					.antMatchers("/accounting/refreshtoken").permitAll()
+					.antMatchers("/accounting/registation", "/accounting/login", "/accounting/refreshtoken").permitAll()
+				// these particular requests need administrator's role
 					.antMatchers("/accounting/admin/**")
 						.hasRole("ADMIN")
 				// all other requests need to be authenticated
@@ -81,6 +80,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 		// Add a filter to validate the tokens with every request
 		httpSecurity.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+		// Add a filter to check access rights
 		httpSecurity.addFilterBefore(roleAccessFilter, UsernamePasswordAuthenticationFilter.class);
 	}
 	

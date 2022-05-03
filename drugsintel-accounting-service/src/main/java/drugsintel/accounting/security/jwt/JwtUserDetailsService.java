@@ -39,23 +39,16 @@ public class JwtUserDetailsService implements UserDetailsService {
 	@Override
 	@Transactional(readOnly = true)
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException, UserNotActiveException {
-		Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-		Account userAccount = accountRepository.findByUserName(username).orElseThrow(() -> new UsernameNotFoundException(username));
+		
+		Account userAccount = accountRepository.findByUserName(username)
+				.orElseThrow(() -> new UsernameNotFoundException(username));
 		if (!userAccount.isActive()) {
 			throw new UserNotActiveException(userAccount.getUserName());
 		}
-		Role role = roleRepository.findByRoleName("USER").get();
-		UserRole userRole = userRoleRepository
-				.findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqualAndRoleIdNot(
-						userAccount.getId(), now, now, role.getId())
-				.orElse(null);
-		if (userRole == null) {
-			userRole = userRoleRepository
-					.findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqual(userAccount.getId(), now, now)
-					.orElseThrow(() -> new EntityNotFoundException("Actual USER-role for User " + userAccount.getId()));
-		}
-		role = roleRepository.findById(userRole.getRoleId()).get();
+		
+		Role role = findActualRole(userAccount.getId());
 		String[] roles = new String[] {"ROLE_" + role.getRoleName().toUpperCase()};
+		
 		return new UserProfile(
 				username,
 				userAccount.getPassword(),
@@ -67,6 +60,20 @@ public class JwtUserDetailsService implements UserDetailsService {
 					.collect(Collectors.toSet()),
 				userAccount.isActive()
 					);
+	}
+
+	private Role findActualRole(Long id) {
+		Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+		UserRole userRole = userRoleRepository
+				.findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqualAndRoleIdNot(
+						id, now, now, roleRepository.findByRoleName("USER").get().getId())
+				.orElse(null);
+		if (userRole == null) {
+			userRole = userRoleRepository
+					.findByUserIdAndDateStartLessThanEqualAndDateEndGreaterThanEqual(id, now, now)
+					.orElseThrow(() -> new EntityNotFoundException("Actual USER-role for User " + id));
+		}
+		return roleRepository.findById(userRole.getRoleId()).get();
 	}
 
 }

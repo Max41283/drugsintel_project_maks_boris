@@ -18,7 +18,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.GenericFilterBean;
 
-import drugsintel.accounting.exceptions.UserAccessDeniedException;
 import drugsintel.accounting.security.jwt.JwtUserDetailsService;
 import drugsintel.accounting.security.jwt.UserProfile;
 
@@ -35,7 +34,7 @@ public class RoleAccessFilter extends GenericFilterBean {
 
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
-			throws UserAccessDeniedException, IOException, ServletException {
+			throws IOException, ServletException {
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) resp;
 		Principal principal = request.getUserPrincipal();
@@ -50,16 +49,19 @@ public class RoleAccessFilter extends GenericFilterBean {
 					.collect(Collectors.toList());
 			if (!roles.contains("ADMIN")) {
 				if (!userDetails.getRouteNames().contains(request.getServletPath())) {
-					logger.error(userDetails.getUsername() + " - access denied!");
-					response.setContentType("application/json");
-			        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-			        response.getOutputStream()
-			        	.println("{ \"Unauthorized\": \"" + userDetails.getUsername() + " - access denied\" }");
+					responseError403(response, userDetails.getUsername() + " - access denied");
 					return;
 				}
 			}
 		}
 		chain.doFilter(request, response);
+	}
+	
+	private void responseError403(HttpServletResponse response, String errorMessage) throws IOException {
+		logger.error(errorMessage);
+		response.setContentType("application/json");
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        response.getOutputStream().println("{ \"Unauthorized error\": \"" + errorMessage + "\" }");
 	}
 
 }

@@ -17,7 +17,7 @@ public class DashboardController {
 	public String getDashboard(Principal principal) {
 		UserProfile userDetails = (UserProfile) SecurityContextHolder.getContext().getAuthentication()
 				.getPrincipal();
-		return userDetails.getUsername();
+		return userDetails.getUsername() + " - access permitted";
 	}
 
 }

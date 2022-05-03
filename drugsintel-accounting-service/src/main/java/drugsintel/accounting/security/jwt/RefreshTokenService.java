@@ -53,9 +53,4 @@ public class RefreshTokenService {
 		return token;
 	}
 
-//	@Transactional
-//	public void deleteByUserId(Long userId) {
-//		refreshTokenRepository.deleteByAccountId(userId);
-//	}
-
 }

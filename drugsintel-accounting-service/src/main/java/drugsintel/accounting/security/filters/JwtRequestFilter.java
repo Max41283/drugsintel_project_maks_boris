@@ -17,8 +17,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import drugsintel.accounting.dao.AccountRepository;
 import drugsintel.accounting.exceptions.EntityNotFoundException;
-import drugsintel.accounting.exceptions.UserAccessDeniedException;
-import drugsintel.accounting.exceptions.UserNotActiveException;
 import drugsintel.accounting.model.Account;
 import drugsintel.accounting.security.jwt.JwtTokenUtil;
 import drugsintel.accounting.security.jwt.JwtUserDetailsService;
@@ -42,37 +40,39 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-			throws UserNotActiveException, UserAccessDeniedException, ServletException, IOException {
+			throws ServletException, IOException {
 
 		final String requestTokenHeader = request.getHeader("Authorization");
 
-		String username = null;
+		String userName = null;
 		String jwtToken = null;
-
+		
+		// Check the correctness of JWT
+		
 		if (requestTokenHeader != null) {
 			if (requestTokenHeader.startsWith("Bearer ")) {
 				jwtToken = requestTokenHeader.substring(7);
 				String errorMessage = jwtTokenUtil.chekJwtCorrect(jwtToken);
 				if (errorMessage.isEmpty()) {
-					username = jwtTokenUtil.getUsernameFromToken(jwtToken);
-					final Long userId = jwtTokenUtil.getUserId(jwtToken);
-					Account account = accountRepository.findById(userId)
-							.orElseThrow(() -> new EntityNotFoundException("User " + userId));
-					if (!account.isActive()) {
-						logger.error(username + " is not active");
-						responseError403(response, username + " is not active");
+					userName = jwtTokenUtil.getUsernameFromToken(jwtToken);
+					
+					// If JWT is correct, check user active condition
+					
+					if (isUserNotActive(jwtToken)) {
+						responseError403(response, userName + " is not active");
 						return;
 					}
+					
 				} else {
 					responseError403(response, errorMessage);
 				}
 			} else {
-				logger.warn("JWT Token does not begin with Bearer String");
+				responseError403(response, "JWT Token does not begin with Bearer String");
 			}
 		}
-		if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+		if (userName != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-			UserProfile userDetails = (UserProfile) this.jwtUserDetailService.loadUserByUsername(username);
+			UserProfile userDetails = (UserProfile) this.jwtUserDetailService.loadUserByUsername(userName);
 
 			// if token is valid configure Spring Security to manually set authentication
 			if (jwtTokenUtil.validateToken(jwtToken, userDetails)) {
@@ -89,7 +89,15 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 		chain.doFilter(request, response);
 	}
 
+	private boolean isUserNotActive(String jwtToken) {
+		Long userId = jwtTokenUtil.getUserId(jwtToken);
+		Account account = accountRepository.findById(userId)
+				.orElseThrow(() -> new EntityNotFoundException("User " + userId));
+		return !account.isActive();
+	}
+
 	private void responseError403(HttpServletResponse response, String errorMessage) throws IOException {
+		logger.error(errorMessage);
 		response.setContentType("application/json");
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.getOutputStream().println("{ \"Unauthorized error\": \"" + errorMessage + "\" }");
