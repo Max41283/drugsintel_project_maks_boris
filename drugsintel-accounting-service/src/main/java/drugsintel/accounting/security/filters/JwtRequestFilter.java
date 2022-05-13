@@ -7,6 +7,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import drugsintel.accounting.dao.AccountRepository;
+import drugsintel.accounting.dto.CheckJwtStatusDto;
 import drugsintel.accounting.exceptions.EntityNotFoundException;
 import drugsintel.accounting.model.Account;
 import drugsintel.accounting.security.jwt.JwtTokenUtil;
@@ -25,6 +28,8 @@ import drugsintel.accounting.security.jwt.UserProfile;
 @Order(10)
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
+	
+	private static final Logger logger = LoggerFactory.getLogger(JwtRequestFilter.class);
 
 	JwtUserDetailsService jwtUserDetailService;
 	JwtTokenUtil jwtTokenUtil;
@@ -52,22 +57,24 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 		if (requestTokenHeader != null) {
 			if (requestTokenHeader.startsWith("Bearer ")) {
 				jwtToken = requestTokenHeader.substring(7);
-				String errorMessage = jwtTokenUtil.chekJwtCorrect(jwtToken);
-				if (errorMessage.isEmpty()) {
+				CheckJwtStatusDto checkJwtStatusDto = jwtTokenUtil.chekJwtCorrect(jwtToken);
+				if (checkJwtStatusDto.getStatusCode() == 0) {
 					userName = jwtTokenUtil.getUsernameFromToken(jwtToken);
 					
 					// If JWT is correct, check user active condition
 					
 					if (isUserNotActive(jwtToken)) {
-						responseError403(response, userName + " is not active");
+						responseError(response, HttpServletResponse.SC_FORBIDDEN, userName + " is not active");
 						return;
 					}
 					
 				} else {
-					responseError403(response, errorMessage);
+					responseError(response, checkJwtStatusDto.getStatusCode(), checkJwtStatusDto.getErrorMessage());
+					return;
 				}
 			} else {
-				responseError403(response, "JWT Token does not begin with Bearer String");
+				responseError(response, HttpServletResponse.SC_FORBIDDEN, "JWT Token does not begin with Bearer String");
+				return;
 			}
 		}
 		if (userName != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -96,11 +103,11 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 		return !account.isActive();
 	}
 
-	private void responseError403(HttpServletResponse response, String errorMessage) throws IOException {
-		logger.error(errorMessage);
+	private void responseError(HttpServletResponse response, int sc, String errorMessage) throws IOException {
+		logger.error("Unauthorized: {}", errorMessage);
 		response.setContentType("application/json");
-        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-        response.getOutputStream().println("{ \"Unauthorized error\": \"" + errorMessage + "\" }");
+        response.setStatus(sc);
+        response.getOutputStream().println("{ \"Unauthorized\": \"" + errorMessage + "\" }");
 	}
 
 }

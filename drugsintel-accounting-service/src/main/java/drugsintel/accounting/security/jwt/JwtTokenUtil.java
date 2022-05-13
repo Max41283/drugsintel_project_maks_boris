@@ -6,11 +6,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import drugsintel.accounting.dto.CheckJwtStatusDto;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -28,8 +29,6 @@ public class JwtTokenUtil implements Serializable {
 	private static final long serialVersionUID = -4532298408480123744L;
 
 //	public static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60;
-	
-	private static final Logger logger = LoggerFactory.getLogger(JwtTokenUtil.class);
 	
 	@Value("${jwt.expirations}")
 	private Long jwtValidity;
@@ -83,27 +82,27 @@ public class JwtTokenUtil implements Serializable {
 			return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
 	}
 	
-	public String chekJwtCorrect(String token) {
-		String errorMessage = "";
+	public CheckJwtStatusDto chekJwtCorrect(String token) {
+		CheckJwtStatusDto checkJwtStatusDto = new CheckJwtStatusDto(0, "");
 		try {
 			Jwts.parser().setSigningKey(secret).parseClaimsJws(token);
 		} catch (SignatureException e) {
-			logger.error("Invalid JWT signature: {}", e.getMessage());
-			errorMessage = "Invalid JWT signature";
+			checkJwtStatusDto.setStatusCode(HttpServletResponse.SC_FORBIDDEN);
+			checkJwtStatusDto.setErrorMessage(e.getMessage());
 		} catch (MalformedJwtException e) {
-			logger.error("Invalid JWT token: {}", e.getMessage());
-			errorMessage = "Invalid JWT token";
+			checkJwtStatusDto.setStatusCode(HttpServletResponse.SC_FORBIDDEN);
+			checkJwtStatusDto.setErrorMessage(e.getMessage());
 		} catch (ExpiredJwtException e) {
-			logger.error("JWT token is expired: {}", e.getMessage());
-			errorMessage = "JWT token is expired";
+			checkJwtStatusDto.setStatusCode(HttpServletResponse.SC_UNAUTHORIZED);
+			checkJwtStatusDto.setErrorMessage(e.getMessage());
 		} catch (UnsupportedJwtException e) {
-			logger.error("JWT token is unsupported: {}", e.getMessage());
-			errorMessage = "JWT token is unsupported";
+			checkJwtStatusDto.setStatusCode(HttpServletResponse.SC_FORBIDDEN);
+			checkJwtStatusDto.setErrorMessage(e.getMessage());
 		} catch (IllegalArgumentException e) {
-			logger.error("JWT claims string is empty: {}", e.getMessage());
-			errorMessage = "JWT claims string is empty";
+			checkJwtStatusDto.setStatusCode(HttpServletResponse.SC_FORBIDDEN);
+			checkJwtStatusDto.setErrorMessage(e.getMessage());
 		}
-		return errorMessage;
+		return checkJwtStatusDto;
 	}
 	
 	public Long getUserId(String token) {

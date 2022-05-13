@@ -61,7 +61,7 @@ public class RoleAccessFilter extends GenericFilterBean {
 		logger.error(errorMessage);
 		response.setContentType("application/json");
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-        response.getOutputStream().println("{ \"Unauthorized error\": \"" + errorMessage + "\" }");
+        response.getOutputStream().println("{ \"Forbidden\": \"" + errorMessage + "\" }");
 	}
 
 }
